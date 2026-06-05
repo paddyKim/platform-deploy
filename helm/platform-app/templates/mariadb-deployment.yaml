@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "platform-app.name" . }}-mariadb
+  labels:
+    {{- include "platform-app.componentLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "platform-app.componentSelectorLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "platform-app.componentSelectorLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 8 }}
+    spec:
+      containers:
+        - name: mariadb
+          image: "{{ .Values.mariadb.image.repository }}:{{ .Values.mariadb.image.tag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MARIADB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform-app.name" . }}-mariadb
+                  key: database
+            - name: MARIADB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform-app.name" . }}-mariadb
+                  key: username
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform-app.name" . }}-mariadb
+                  key: password
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform-app.name" . }}-mariadb
+                  key: root-password
+          readinessProbe:
+            tcpSocket:
+              port: mysql
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "platform-app.name" . }}-mariadb

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "platform-app.name" . }}-mariadb
+  labels:
+    {{- include "platform-app.componentLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mariadb.storage.size | quote }}

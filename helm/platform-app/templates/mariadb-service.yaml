@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "platform-app.name" . }}-mariadb
+  labels:
+    {{- include "platform-app.componentLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+  selector:
+    {{- include "platform-app.componentSelectorLabels" (dict "Chart" .Chart "Release" .Release "Values" .Values "component" "mariadb") | nindent 4 }}

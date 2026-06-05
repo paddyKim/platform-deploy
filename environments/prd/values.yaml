@@ -1,0 +1,25 @@
+nameOverride: platform
+imagePullSecrets:
+  - ghcr-token
+
+api:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/paddykim/platform-api
+    tag: 21f4a4a
+  env:
+    corsAllowedOrigin: http://localhost:3000
+
+web:
+  replicaCount: 2
+  image:
+    repository: ghcr.io/paddykim/platform-web
+    tag: 21f4a4a
+
+mariadb:
+  database: platform
+  username: platform
+  password: platform
+  rootPassword: root
+  storage:
+    size: 2Gi

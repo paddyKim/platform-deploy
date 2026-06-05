@@ -1,0 +1,33 @@
+nameOverride: platform
+
+imagePullPolicy: IfNotPresent
+imagePullSecrets: []
+
+mariadb:
+  image:
+    repository: mariadb
+    tag: "11.4"
+  database: platform
+  username: platform
+  password: platform
+  rootPassword: root
+  storage:
+    size: 1Gi
+
+api:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/paddykim/platform-api
+    tag: 21f4a4a
+  service:
+    port: 8080
+  env:
+    corsAllowedOrigin: http://localhost:3000
+
+web:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/paddykim/platform-web
+    tag: 21f4a4a
+  service:
+    port: 80
