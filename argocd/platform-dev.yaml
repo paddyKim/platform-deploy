@@ -10,6 +10,7 @@ spec:
     targetRevision: main
     path: helm/platform-app
     helm:
+      releaseName: platform
       valueFiles:
         - ../../environments/dev/values.yaml
   destination:
