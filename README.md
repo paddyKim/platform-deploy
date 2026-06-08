@@ -57,3 +57,51 @@ Verify the API:
 curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/tasks
 ```
+
+## Day 6 GitOps Deploy and Rollback
+Day 6 uses ArgoCD automated sync for `dev`.
+
+Safety defaults:
+- `selfHeal: true`
+- `prune: false`
+- Helm release name remains `platform`
+
+Update the deployed image tag after Jenkins pushes new images:
+
+```bash
+cd platform-deploy
+
+NEW_TAG='<jenkins-git-short-sha>'
+
+perl -0pi -e "s/(api:\n(?:  .*\n)*?  image:\n(?:    .*\n)*?    tag: ).*/\${1}${NEW_TAG}/" environments/dev/values.yaml
+perl -0pi -e "s/(web:\n(?:  .*\n)*?  image:\n(?:    .*\n)*?    tag: ).*/\${1}${NEW_TAG}/" environments/dev/values.yaml
+
+git diff environments/dev/values.yaml
+git add environments/dev/values.yaml
+git commit -m "Deploy dev image ${NEW_TAG}"
+git push origin main
+```
+
+Check ArgoCD sync and rollout:
+
+```bash
+kubectl -n argocd get application platform-dev
+kubectl -n argocd get application platform-dev -o jsonpath='{.status.sync.status} {.status.health.status}'
+
+kubectl -n dev rollout status deploy/platform-api
+kubectl -n dev rollout status deploy/platform-web
+```
+
+Rollback with Git revert:
+
+```bash
+cd platform-deploy
+
+git log --oneline -5
+git revert <bad-deploy-commit>
+git push origin main
+
+kubectl -n argocd get application platform-dev
+kubectl -n dev rollout status deploy/platform-api
+kubectl -n dev rollout status deploy/platform-web
+```
