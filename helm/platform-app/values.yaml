@@ -21,6 +21,12 @@ api:
     tag: 21f4a4a
   service:
     port: 8080
+  serviceMonitor:
+    enabled: false
+    labels: {}
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /actuator/prometheus
   env:
     corsAllowedOrigin: http://localhost:3000
 
