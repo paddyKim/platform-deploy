@@ -105,3 +105,49 @@ kubectl -n argocd get application platform-dev
 kubectl -n dev rollout status deploy/platform-api
 kubectl -n dev rollout status deploy/platform-web
 ```
+
+## Day 7 Observability
+The chart includes an optional ServiceMonitor for `platform-api`.
+
+Current dev configuration enables:
+
+```text
+ServiceMonitor: platform-api
+Scrape path: /actuator/prometheus
+Prometheus selector label: release=monitoring
+```
+
+Check it:
+
+```bash
+kubectl -n dev get servicemonitor platform-api
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090
+```
+
+PromQL:
+
+```promql
+up{service="platform-api"}
+jvm_memory_used_bytes
+http_server_requests_seconds_count
+```
+
+## Day 8 Failure Drill Results
+Three recovery paths were verified:
+
+| Drill | Failure Type | Recovery Owner | MTTR |
+|---|---|---|---|
+| Bad image tag | Bad Git desired state | Git revert + ArgoCD sync | 1m 17s |
+| Replica 0 drift | Live cluster drift | ArgoCD self-heal | 33s |
+| Pod deletion | Missing runtime pod | Kubernetes Deployment controller | 33s |
+
+Important boundary:
+- ArgoCD corrects Git-to-cluster drift.
+- Kubernetes Deployment controller recreates missing pods to satisfy `replicas`.
+- Git revert is the recovery path for bad desired state committed to this repository.
+
+## Portfolio References
+- `../docs/day-08-completion.md`
+- `../docs/operations-runbook.md`
+- `../docs/portfolio-summary.md`
+- `../docs/demo-script.md`
